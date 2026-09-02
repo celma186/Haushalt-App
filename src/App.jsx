@@ -1039,6 +1039,9 @@ finishedRef.current = true;
 
     return () => {
       cancelled = true;
+      if (finishedRef.current) return;
+if (startedRef.current) {
+
       if (startedRef.current) {
         instance.stop().then(() => instance.clear()).catch(() => {});
       } else {
