@@ -1,4 +1,4 @@
-# Haushaltsplaner – gemeinsam nutzbare Webapp
+# Haushaltsplaner – gemeinsam nutzbare Webapp 
 
 Diese App speichert ihren Zustand nicht mehr nur lokal im Browser, sondern in
 einer gemeinsamen Supabase-Datenbank. Änderungen von dir und deinem Partner
