@@ -1024,9 +1024,9 @@ function BarcodeScannerModal({ onDetected, onClose }) {
         { fps: 10, qrbox: { width: 260, height: 140 } },
         (decodedText) => {
           if (cancelled) return;
-          cancelled = true;
-          startedRef.current = false;
-          instance.stop().then(() => instance.clear()).catch(() => {}).finally(() => onDetected(decodedText));
+cancelled = true;
+startedRef.current = false;
+finishedRef.current = true;
 
         },
         () => { /* laufende Scan-Versuche ohne Treffer – ignorieren */ }
