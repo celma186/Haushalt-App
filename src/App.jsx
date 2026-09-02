@@ -354,6 +354,27 @@ const GlobalStyles = () => (
 
     .nest-app, .nest-app * { box-sizing: border-box; }
     .nest-app {
+    .nest-app a {
+  color: var(--rose-deep);
+  text-decoration: none;
+}
+
+.nest-app a:hover {
+  color: var(--rose);
+}
+
+.nest-app *:focus {
+  outline: none;
+}
+
+.nest-app button:focus,
+.nest-app input:focus,
+.nest-app select:focus,
+.nest-app textarea:focus {
+  border-color: var(--rose);
+  box-shadow: 0 0 0 3px rgba(217,139,152,0.15);
+}
+
       --cream: #F7F1E8;
       --card: #FFFCF7;
       --card-2: #FBF5EC;
