@@ -1004,6 +1004,7 @@ function BarcodeScannerModal({ onDetected, onClose }) {
   const [cameraError, setCameraError] = useState("");
   const scannerRef = useRef(null);
   const startedRef = useRef(false);
+const finishedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
