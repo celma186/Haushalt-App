@@ -634,44 +634,7 @@ function assigneeIcon(id) {
   return "👫";
 }
 
-const POINT_VALUES = { high: 3, medium: 2, low: 1 };
 
-function computeLeaderboard(tasks) {
-  const totals = { person1: 0, person2: 0 };
-  tasks.filter((t) => t.completed).forEach((t) => {
-    const pts = POINT_VALUES[t.priority] || 1;
-    if (t.assignee === "person1") totals.person1 += pts;
-    else if (t.assignee === "person2") totals.person2 += pts;
-    else { totals.person1 += pts / 2; totals.person2 += pts / 2; }
-  });
-  return totals;
-}
-function LeaderboardCard({ tasks, settings }) {
-  const totals = useMemo(() => computeLeaderboard(tasks), [tasks]);
-  const tie = totals.person1 === totals.person2;
-  const leaderIsP1 = totals.person1 > totals.person2;
-  return (
-    <div className="nest-card" style={{ padding: 16 }}>
-      <div style={{ display: "flex", justifyContent: "space-around", gap: 16 }}>
-        <div style={{ textAlign: "center", flex: 1 }}>
-          <div style={{ fontSize: 28 }}>👩</div>
-          <div style={{ fontWeight: 800 }}>{settings.person1Name}</div>
-          <div className="serif" style={{ fontSize: 22 }}>{formatDE(totals.person1, 1)}</div>
-          {!tie && leaderIsP1 && <div style={{ fontSize: 20 }}>🏆</div>}
-        </div>
-        <div style={{ textAlign: "center", flex: 1 }}>
-          <div style={{ fontSize: 28 }}>👨</div>
-          <div style={{ fontWeight: 800 }}>{settings.person2Name}</div>
-          <div className="serif" style={{ fontSize: 22 }}>{formatDE(totals.person2, 1)}</div>
-          {!tie && !leaderIsP1 && <div style={{ fontSize: 20 }}>🏆</div>}
-        </div>
-      </div>
-      <div style={{ fontSize: 12, color: "var(--ink-soft)", textAlign: "center", marginTop: 10 }}>
-        Punkte für erledigte Aufgaben (🔴 3 · 🟡 2 · 🟢 1)
-      </div>
-    </div>
-  );
-}
 function EmptyState({ icon, title, actionLabel, onAction }) {
   return (
     <div className="nest-empty">
