@@ -1004,7 +1004,7 @@ function BarcodeScannerModal({ onDetected, onClose }) {
   const [cameraError, setCameraError] = useState("");
   const scannerRef = useRef(null);
   const startedRef = useRef(false);
-const finishedRef = useRef(false);
+  const finishedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -1025,10 +1025,10 @@ const finishedRef = useRef(false);
         { fps: 10, qrbox: { width: 260, height: 140 } },
         (decodedText) => {
           if (cancelled) return;
-cancelled = true;
-startedRef.current = false;
-finishedRef.current = true;
-
+          cancelled = true;
+          startedRef.current = false;
+          finishedRef.current = true;
+          instance.stop().then(() => instance.clear()).catch(() => {}).finally(() => onDetected(decodedText));
         },
         () => { /* laufende Scan-Versuche ohne Treffer – ignorieren */ }
       )
@@ -1040,8 +1040,6 @@ finishedRef.current = true;
     return () => {
       cancelled = true;
       if (finishedRef.current) return;
-if (startedRef.current) {
-
       if (startedRef.current) {
         instance.stop().then(() => instance.clear()).catch(() => {});
       } else {
@@ -1085,6 +1083,7 @@ if (startedRef.current) {
     </Modal>
   );
 }
+
 
 /* ---------------------------------------------------------------------- */
 /* VORRAT-MODAL                                                           */
