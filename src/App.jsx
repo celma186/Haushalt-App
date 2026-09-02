@@ -1002,6 +1002,8 @@ const SCANNER_REGION_ID = "nest-barcode-scanner-region";
 function BarcodeScannerModal({ onDetected, onClose }) {
   const [manualCode, setManualCode] = useState("");
   const [cameraError, setCameraError] = useState("");
+  const [torchOn, setTorchOn] = useState(false);
+  const [torchSupported, setTorchSupported] = useState(false);
   const scannerRef = useRef(null);
   const startedRef = useRef(false);
   const finishedRef = useRef(false);
@@ -1032,7 +1034,16 @@ function BarcodeScannerModal({ onDetected, onClose }) {
         },
         () => { /* laufende Scan-Versuche ohne Treffer – ignorieren */ }
       )
-      .then(() => { startedRef.current = true; })
+      .then(() => {
+        startedRef.current = true;
+        try {
+          const capabilities = instance.getRunningTrackCameraCapabilities();
+          const torchFeature = capabilities?.torchFeature?.();
+          if (torchFeature?.isSupported?.()) setTorchSupported(true);
+        } catch {
+          /* Blitzlicht-Check nicht verfügbar – einfach ausblenden */
+        }
+      })
       .catch(() => {
         if (!cancelled) setCameraError("Kamera konnte nicht gestartet werden. Bitte Kamerazugriff erlauben oder Barcode unten manuell eingeben.");
       });
@@ -1048,6 +1059,17 @@ function BarcodeScannerModal({ onDetected, onClose }) {
     };
   }, [onDetected]);
 
+  const toggleTorch = async () => {
+    try {
+      const capabilities = scannerRef.current.getRunningTrackCameraCapabilities();
+      const torchFeature = capabilities.torchFeature();
+      await torchFeature.apply(!torchOn);
+      setTorchOn(!torchOn);
+    } catch {
+      /* Blitzlicht konnte nicht umgeschaltet werden */
+    }
+  };
+
   const submitManual = () => {
     const code = manualCode.trim();
     if (!code) return;
@@ -1059,6 +1081,15 @@ function BarcodeScannerModal({ onDetected, onClose }) {
       <div className="nest-scanner-box">
         <div id={SCANNER_REGION_ID} className="nest-scanner-video" />
       </div>
+      {torchSupported && (
+        <button
+          className="nest-btn nest-btn-sm"
+          style={{ marginTop: 10 }}
+          onClick={toggleTorch}
+        >
+          {torchOn ? "🔦 Blitzlicht aus" : "🔦 Blitzlicht an"}
+        </button>
+      )}
       {cameraError ? (
         <div style={{ fontSize: 13, color: "var(--red)", marginTop: 10 }}>{cameraError}</div>
       ) : (
@@ -1083,6 +1114,7 @@ function BarcodeScannerModal({ onDetected, onClose }) {
     </Modal>
   );
 }
+
 
 
 /* ---------------------------------------------------------------------- */
