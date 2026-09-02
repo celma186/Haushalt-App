@@ -1865,10 +1865,7 @@ function DashboardPage({ state, actions, openModal, setPage, navigate }) {
           )}
         </div>
       </div>
-      <div className="nest-section">
-        <div className="nest-section-title" style={{ marginBottom: 10 }}>🏆 Punktestand</div>
-        <LeaderboardCard tasks={tasks} settings={settings} />
-      </div>
+     
       <div className="nest-section">
         <div className="nest-section-title" style={{ marginBottom: 10 }}>Was steht an?</div>
         <div className="nest-grid-4">
