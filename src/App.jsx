@@ -1026,8 +1026,8 @@ function BarcodeScannerModal({ onDetected, onClose }) {
           if (cancelled) return;
           cancelled = true;
           startedRef.current = false;
-          instance.stop().then(() => instance.clear()).catch(() => {});
-          onDetected(decodedText);
+          instance.stop().then(() => instance.clear()).catch(() => {}).finally(() => onDetected(decodedText));
+
         },
         () => { /* laufende Scan-Versuche ohne Treffer – ignorieren */ }
       )
