@@ -3483,13 +3483,17 @@ export default function App() {
     replaceState: (data) => { setState({ ignoredSuggestions: [], mealPlan: {}, notes: [], cookedMeals: {}, ...data }); notify("Daten importiert."); },
   }), [closeModal, notify]);
 
-  if (!state) {
+    if (!state) {
     return (
       <div className="nest-app" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300 }}>
         <GlobalStyles />
         <div style={{ color: "var(--ink-soft)" }}>Lädt…</div>
       </div>
     );
+  }
+
+  if (!currentUser) {
+    return <WhoAreYouScreen settings={state.settings} onSelect={selectUser} />;
   }
 
   const pages = {
