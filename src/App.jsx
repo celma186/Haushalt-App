@@ -1426,26 +1426,23 @@ function extractServingsNumber(raw) {
   return match ? Number(match[0]) : null;
 }
 
-function RecipeImportModal({ onImported, onClose }) {
-  const [tab, setTab] = useState("link");
-  const [url, setUrl] = useState("");
-  const [text, setText] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+const applyParsed = ({ title, description, ingredients, instructions, servings }) => {
+  const stepsText = (instructions || [])
+    .map((step, idx) => `${idx + 1}. ${step}`)
+    .join("\n");
+  const fullDescription = [description, stepsText].filter(Boolean).join("\n\n");
 
-  const applyParsed = ({ title, ingredients, instructions, servings }) => {
-    const description = (instructions || [])
-      .map((step, idx) => `${idx + 1}. ${step}`)
-      .join("\n");
-    onImported({
-      name: title || "",
-      description,
-      servings: extractServingsNumber(servings) || 4,
-      prepTime: 30,
-      category: "",
-      ingredients: (ingredients || []).map((line) => parseIngredientLine(line)),
-    });
-  };
+  onImported({
+    name: title || "",
+    description: fullDescription,
+    servings: extractServingsNumber(servings) || 4,
+    prepTime: 30,
+    category: "",
+    ingredients: (ingredients || []).map((ing) =>
+      typeof ing === "string" ? parseIngredientLine(ing) : ing
+    ),
+  });
+};
 
   const importFromLink = async () => {
     if (!url.trim()) return;
