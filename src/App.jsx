@@ -1344,7 +1344,18 @@ function RecipeModal({ initial, defaultName, defaultDescription, defaultServings
       ? defaultIngredients.map((i) => ({ product: "", ...i }))
       : [{ name: "", product: "", amount: "", unit: "Stück" }]
   );
-
+  // Merkt sich Ausgangs-Portionenzahl und -Mengen, damit "Mengen anpassen"
+  // immer korrekt vom Original aus umrechnet (statt sich bei mehrfachem
+  // Klicken durch Rundungsfehler zu verschieben).
+  const [baseServings] = useState(initial?.servings || defaultServings || 4);
+  const [baseIngredients] = useState(
+    initial?.ingredients?.length
+      ? initial.ingredients.map((i) => ({ product: "", ...i }))
+      : defaultIngredients?.length
+      ? defaultIngredients.map((i) => ({ product: "", ...i }))
+      : [{ name: "", product: "", amount: "", unit: "Stück" }]
+  );
+  
   const updateIngredient = (idx, field, value) => {
     setIngredients((prev) => prev.map((ing, i) => (i === idx ? { ...ing, [field]: value } : ing)));
   };
