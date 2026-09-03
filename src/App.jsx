@@ -2949,15 +2949,39 @@ export default function App() {
   const [modal, setModal] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [toast, setToast] = useState(null);
-  const [confirmState, setConfirmState] = useState(null);
+    const [confirmState, setConfirmState] = useState(null);
   const [pendingFilter, setPendingFilter] = useState(null);
   const saveTimeout = useRef(null);
   const toastTimeout = useRef(null);
+  const undoTimeout = useRef(null);
+  const [undoState, setUndoState] = useState(null); // { message, onUndo }
 
   const notify = useCallback((message, icon) => {
     setToast({ message, icon });
     if (toastTimeout.current) clearTimeout(toastTimeout.current);
     toastTimeout.current = setTimeout(() => setToast(null), 2800);
+  }, []);
+
+  // Zeigt statt eines normalen Toasts einen mit Rückgängig-Button. removeFn
+  // führt das eigentliche (endgültige) Löschen aus - wird erst nach Ablauf
+  // der Frist oder beim Wegklicken aufgerufen, nicht sofort.
+  const notifyWithUndo = useCallback((message, removeFn, restoreFn) => {
+    if (undoTimeout.current) {
+      clearTimeout(undoTimeout.current);
+      undoTimeout.current = null;
+    }
+    setUndoState({
+      message,
+      onUndo: () => {
+        clearTimeout(undoTimeout.current);
+        setUndoState(null);
+        restoreFn();
+      },
+    });
+    undoTimeout.current = setTimeout(() => {
+      setUndoState(null);
+      removeFn();
+    }, 5000);
   }, []);
 
   // Zentrale Sicherheitsabfrage, z.B. vor dem Löschen eines Eintrags.
