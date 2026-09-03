@@ -1433,11 +1433,12 @@ function RecipeImportModal({ onImported, onClose }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const applyParsed = ({ title, description, ingredients, instructions, servings }) => {
-    const stepsText = (instructions || [])
+   const applyParsed = ({ title, description, ingredients, steps, servings }) => {
+    const stepsText = (steps || [])
       .map((step, idx) => `${idx + 1}. ${step}`)
       .join("\n");
     const fullDescription = [description, stepsText].filter(Boolean).join("\n\n");
+
     onImported({
       name: title || "",
       description: fullDescription,
