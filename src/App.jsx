@@ -1684,8 +1684,13 @@ function analyzeRecipe(recipe, inventory, substitutes = {}) {
       missing.push(entry);
       return;
     }
-    const convertible = items.filter((item) => availableInUnit(item, ing.unit) !== null);
+        const convertible = items.filter((item) => availableInUnit(item, ing.unit) !== null);
     if (convertible.length === 0) {
+      if (SMALL_AMOUNT_UNITS.includes(ing.unit)) {
+        // Gewürz-typische Kleinmenge (TL/EL/Prise): Hauptsache vorhanden,
+        // eine exakte Umrechnung von Gewicht/Packung in Löffel/Prisen ist unrealistisch.
+        return;
+      }
       // Einheiten nicht vergleichbar – nur Vorhandensein prüfen, als Hinweis markieren.
       const item = items[0];
       missing.push({ ...ing, idx, incompatibleUnit: true, itemLabel: item.product || item.name, itemQuantity: item.quantity, itemUnit: item.unit });
