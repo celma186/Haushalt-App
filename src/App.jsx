@@ -848,6 +848,20 @@ function Toast({ toast }) {
     </div>
   );
 }
+function UndoToast({ undoState }) {
+  if (!undoState) return null;
+  return (
+    <div className="nest-toast" role="status" aria-live="polite" style={{ display: "flex", alignItems: "center", gap: 14 }}>
+      <span>🗑️ {undoState.message}</span>
+      <button
+        onClick={undoState.onUndo}
+        style={{ background: "none", border: "none", color: "var(--rose-tint)", fontWeight: 800, cursor: "pointer", fontSize: 13.5, padding: 0 }}
+      >
+        Rückgängig
+      </button>
+    </div>
+  );
+}
 
 function Field({ label, children }) {
   return (
