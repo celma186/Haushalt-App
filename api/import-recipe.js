@@ -87,51 +87,46 @@ export default async function handler(req, res) {
 
     // Fügt versehentlich getrennte Mengen-/Namens-Paare wieder zusammen,
     // egal in welcher Reihenfolge sie geliefert wurden.
-       function cleanupIngredientList(rawList) {
-      const cleaned = [];
-      for (let i = 0; i < rawList.length; i++) {
-        const current = (rawList[i] || "").trim();
-        const next = (rawList[i + 1] || "").trim();
-        if (!current) continue;
+      // Wörter, die nur beschreiben, WIE die Menge gemeint ist (z.B. "1
+// gestrichener TL"), aber durch einen Chefkoch-Datenfehler fälschlich
+// vorne im Zutatennamen landen. Werden komplett entfernt.
+const AMOUNT_QUALIFIER_WORDS = /\b(gestr\.?|gestrichen(er|e|en)?|gehäuft(er|e|en)?|glatt(er|e|en)?)\b/gi;
 
-        let combined;
-        if (QUANTITY_ONLY.test(current) && next && !QUANTITY_ONLY.test(next)) {
-          combined = `${current} ${next}`;
-          i++;
-        } else if (!QUANTITY_ONLY.test(current) && next && QUANTITY_ONLY.test(next)) {
-          combined = `${next} ${current}`;
-          i++;
-        } else {
-          combined = current;
-        }
-        // Chefkoch liefert manche Zutaten-Zusätze (z.B. "gestrichen") verrutscht
-        // an den Anfang, wodurch ein führendes Komma entsteht – bereinigen.
-       combined = combined.replace(/^,\s*/, "").replace(/\s+/g, " ").trim();
-        cleaned.push(combined);
-      }
-      return cleaned;
+// Wörter, die eine ungefähre Menge ausdrücken (z.B. "etwas Salz"), statt
+// einer echten Zahl. Werden vom Namen entfernt, damit z.B. "etwas
+// Kümmelpulver" als einfach "Kümmelpulver" erkannt wird.
+const APPROX_QUANTITY_PREFIX = /^(etwas|einige|ein paar|nach belieben|nach geschmack)\s+/i;
+
+// Räumt einen einzelnen Zutatennamen auf: entfernt verrutschte Kommas
+// am Anfang sowie Mengen-Wörter wie "gestr." oder "etwas".
+function cleanIngredientName(text) {
+  return text
+    .replace(/^,\s*/, "")
+    .replace(AMOUNT_QUALIFIER_WORDS, "")
+    .replace(APPROX_QUANTITY_PREFIX, "")
+    .replace(/\s+/g, " ")
+    .replace(/^,\s*/, "")
+    .trim();
+}
+
+function cleanupIngredientList(rawList) {
+  const cleaned = [];
+  for (let i = 0; i < rawList.length; i++) {
+    const current = (rawList[i] || "").trim();
+    const next = (rawList[i + 1] || "").trim();
+    if (!current) continue;
+
+    let combined;
+    if (QUANTITY_ONLY.test(current) && next && !QUANTITY_ONLY.test(next)) {
+      combined = `${current} ${cleanIngredientName(next)}`;
+      i++;
+    } else if (!QUANTITY_ONLY.test(current) && next && QUANTITY_ONLY.test(next)) {
+      combined = `${next} ${cleanIngredientName(current)}`;
+      i++;
+    } else {
+      combined = cleanIngredientName(current);
     }
-    const rawIngredients = recipe.recipeIngredient || recipe.ingredients || [];
-    const ingredients = cleanupIngredientList(rawIngredients);
-    const instructions = flattenInstructions(recipe.recipeInstructions);
-
-    let image = recipe.image;
-    image = resolveRef(image);
-    if (Array.isArray(image)) image = image[0];
-    if (image && typeof image === "object") image = image.url || image.contentUrl || "";
-    if (typeof image !== "string") image = "";
-
-    let servings = recipe.recipeYield || "";
-    if (Array.isArray(servings)) servings = servings[servings.length - 1] || "";
-
-    res.status(200).json({
-      title: recipe.name || "",
-      ingredients,
-      instructions,
-      image,
-      servings,
-    });
-  } catch (err) {
-    res.status(500).json({ error: "Seite konnte nicht abgerufen werden.", detail: String(err) });
+    cleaned.push(combined.replace(/\s+/g, " ").trim());
   }
+  return cleaned;
 }
