@@ -2612,8 +2612,18 @@ function MealsPage({ state, actions, openModal, pendingFilter, consumeFilter }) 
 )}
       </div>
 
-      {tab === "plan" ? (
+           {tab === "plan" ? (
         <>
+          {weeklyShortages.length > 0 && (
+            <div className="nest-section">
+              {weeklyShortages.map((w) => (
+                <div key={w.label} className="nest-banner nest-banner-urgent">
+                  <span>⚠️</span>
+                  <span><strong>{w.label}</strong> reicht nur für {w.coveredCount} von {w.neededCount} geplanten Mahlzeiten diese Woche.</span>
+                </div>
+              ))}
+            </div>
+          )}
           {cookableNow.length > 0 && (
             <div className="nest-section">
               <div className="nest-section-title" style={{ marginBottom: 10 }}>Du hast genug Zutaten für</div>
