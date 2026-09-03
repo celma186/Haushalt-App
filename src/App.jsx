@@ -1658,6 +1658,7 @@ function deductAmountAcrossItems(items, amount, unit) {
   }
   return { updates, remaining: Math.max(0, Math.round(remaining * 1e6) / 1e6), usedItems };
 }
+const SMALL_AMOUNT_UNITS = ["TL", "EL", "Prise"];
 
 /* substitutes: optionale Zuordnung { ingredientIndex: inventoryItemId }, mit
    der ein Nutzer statt des fehlenden konkreten Produkts ein vorhandenes
