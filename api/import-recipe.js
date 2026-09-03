@@ -150,6 +150,7 @@ export default async function handler(req, res) {
       return cleaned;
     }
 
+console.log("RAW ZUTATEN:", recipe.recipeIngredient);
     const ingredients = cleanupIngredientList(
       (recipe.recipeIngredient || []).map((i) => (typeof i === "string" ? i : toText(i)))
     );
