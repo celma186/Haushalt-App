@@ -3233,10 +3233,20 @@ export default function App() {
       closeModal();
       notify("Einkaufsartikel gespeichert.");
     },
-    deleteShopping: (id) => {
-      setState((prev) => ({ ...prev, shopping: prev.shopping.filter((s) => s.id !== id) }));
+        deleteShopping: (id) => {
+      let removed = null;
+      setState((prev) => {
+        removed = prev.shopping.find((s) => s.id === id) || null;
+        return { ...prev, shopping: prev.shopping.filter((s) => s.id !== id) };
+      });
       closeModal();
-      notify("Einkaufsartikel gelöscht.");
+      if (removed) {
+        notifyWithUndo(
+          "Einkaufsartikel gelöscht.",
+          () => {},
+          () => setState((prev) => ({ ...prev, shopping: [...prev.shopping, removed] }))
+        );
+      }
     },
     toggleShopping: (item) => {
       setState((prev) => ({ ...prev, shopping: prev.shopping.map((s) => (s.id === item.id ? { ...s, checked: !s.checked } : s)) }));
