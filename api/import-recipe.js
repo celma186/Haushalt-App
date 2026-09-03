@@ -87,26 +87,30 @@ export default async function handler(req, res) {
 
     // Fügt versehentlich getrennte Mengen-/Namens-Paare wieder zusammen,
     // egal in welcher Reihenfolge sie geliefert wurden.
-    function cleanupIngredientList(rawList) {
+       function cleanupIngredientList(rawList) {
       const cleaned = [];
       for (let i = 0; i < rawList.length; i++) {
         const current = (rawList[i] || "").trim();
         const next = (rawList[i + 1] || "").trim();
         if (!current) continue;
 
+        let combined;
         if (QUANTITY_ONLY.test(current) && next && !QUANTITY_ONLY.test(next)) {
-          cleaned.push(`${current} ${next}`);
+          combined = `${current} ${next}`;
           i++;
         } else if (!QUANTITY_ONLY.test(current) && next && QUANTITY_ONLY.test(next)) {
-          cleaned.push(`${next} ${current}`);
+          combined = `${next} ${current}`;
           i++;
         } else {
-          cleaned.push(current);
+          combined = current;
         }
+        // Chefkoch liefert manche Zutaten-Zusätze (z.B. "gestrichen") verrutscht
+        // an den Anfang, wodurch ein führendes Komma entsteht – bereinigen.
+        combined = combined.replace(/,\s*/, " ").replace(/\s+/g, " ").trim();
+        cleaned.push(combined);
       }
       return cleaned;
     }
-
     const rawIngredients = recipe.recipeIngredient || recipe.ingredients || [];
     const ingredients = cleanupIngredientList(rawIngredients);
     const instructions = flattenInstructions(recipe.recipeInstructions);
