@@ -3046,6 +3046,14 @@ export default function App() {
     setConfirmState({ message, onConfirm, danger: opts.danger !== false, confirmLabel: opts.confirmLabel, detail: opts.detail });
   }, []);
   const closeConfirm = useCallback(() => setConfirmState(null), []);
+    const selectUser = useCallback((id) => {
+    saveCurrentUser(id);
+    setCurrentUser(id);
+  }, []);
+  const switchUser = useCallback(() => {
+    saveCurrentUser(null);
+    setCurrentUser(null);
+  }, []);
 
   // Navigation mit optionalem Filter, z.B. von einer klickbaren Dashboard-Kachel
   // direkt in die passende gefilterte Ansicht springen.
