@@ -889,6 +889,29 @@ function Field({ label, children }) {
       {children}
     </div>
   );
+}function WhoAreYouScreen({ settings, onSelect }) {
+  return (
+    <div className="nest-app" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: 20 }}>
+      <GlobalStyles />
+      <div className="nest-card" style={{ maxWidth: 380, width: "100%", textAlign: "center", padding: "32px 26px" }}>
+        <div style={{ fontSize: 34, marginBottom: 10 }}>🌷</div>
+        <h1 style={{ fontSize: 20, marginBottom: 6 }}>Wer bist du?</h1>
+        <p style={{ fontSize: 13.5, color: "var(--ink-soft)", marginBottom: 22 }}>
+          Dieses Gerät merkt sich deine Auswahl, damit deine Aufgaben persönlich angezeigt werden.
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <button className="nest-btn nest-btn-primary" style={{ justifyContent: "center", padding: "12px 16px", fontSize: 15 }}
+            onClick={() => onSelect("person1")}>
+            👩 {settings.person1Name || "Person 1"}
+          </button>
+          <button className="nest-btn nest-btn-primary" style={{ justifyContent: "center", padding: "12px 16px", fontSize: 15 }}
+            onClick={() => onSelect("person2")}>
+            👨 {settings.person2Name || "Person 2"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /* ---------------------------------------------------------------------- */
