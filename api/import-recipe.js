@@ -94,6 +94,15 @@ export default async function handler(req, res) {
       return Number(cleaned) || 0;
     }
 
+    // "Ei(er)" + Menge 3 -> "Eier", "Ei(er)" + Menge 1 -> "Ei"
+    // (Chefkoch schreibt Pluralformen manchmal so direkt am Wort.)
+    function resolvePluralForm(word, amount) {
+      const m = word.match(/^(.+)\(([a-zäöüßA-ZÄÖÜ]+)\)$/);
+      if (!m) return word;
+      const [, base, suffix] = m;
+      return amount === 1 ? base : base + suffix;
+    }
+
     // "Pfeffer, schwarzer" -> { name: "Pfeffer", product: "schwarzer" }
     function splitNameProduct(text) {
       const cleaned = text.replace(/^[.,]\s*/, "").trim();
@@ -131,11 +140,12 @@ export default async function handler(req, res) {
       text = text.replace(/^[.,]\s*/, "").replace(/\s+/g, " ").trim();
 
       const { name, product } = splitNameProduct(text);
+      const resolvedName = resolvePluralForm(name, amount);
       const productWithNote = notes.length > 0
         ? `${product ? product + " " : ""}(${notes.join(", ")})`.trim()
         : product;
 
-      return { name: name || text, product: productWithNote, amount, unit };
+      return { name: resolvedName || text, product: productWithNote, amount, unit };
     }
 
     // Fügt getrennte Mengen-/Namens-Paare wieder zusammen und baut daraus
