@@ -1417,6 +1417,114 @@ function RecipeModal({ initial, defaultName, defaultDescription, defaultServings
 }
 
 /* ---------------------------------------------------------------------- */
+/* REZEPT-IMPORT (Link / Text)                                             */
+/* ---------------------------------------------------------------------- */
+
+function extractServingsNumber(raw) {
+  if (!raw) return null;
+  const match = String(raw).match(/\d+/);
+  return match ? Number(match[0]) : null;
+}
+
+function RecipeImportModal({ onImported, onClose }) {
+  const [tab, setTab] = useState("link");
+  const [url, setUrl] = useState("");
+  const [text, setText] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const applyParsed = ({ title, ingredients, instructions, servings }) => {
+    const description = (instructions || [])
+      .map((step, idx) => `${idx + 1}. ${step}`)
+      .join("\n");
+    onImported({
+      name: title || "",
+      description,
+      servings: extractServingsNumber(servings) || 4,
+      prepTime: 30,
+      category: "",
+      ingredients: (ingredients || []).map((line) => parseIngredientLine(line)),
+    });
+  };
+
+  const importFromLink = async () => {
+    if (!url.trim()) return;
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/import-recipe?url=${encodeURIComponent(url.trim())}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Rezept konnte nicht geladen werden.");
+        return;
+      }
+      applyParsed(data);
+    } catch {
+      setError("Verbindung fehlgeschlagen. Bitte Link prüfen und erneut versuchen.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const importFromText = () => {
+    if (!text.trim()) {
+      setError("Bitte zuerst Text einfügen.");
+      return;
+    }
+    setError("");
+    const parsed = parseRecipeText(text);
+    applyParsed(parsed);
+  };
+
+  return (
+    <Modal title="Rezept importieren" onClose={onClose}>
+      <div className="nest-pill-select" style={{ marginBottom: 16 }}>
+        <button className={`nest-pill ${tab === "link" ? "active" : ""}`} onClick={() => setTab("link")}>🔗 Link</button>
+        <button className={`nest-pill ${tab === "text" ? "active" : ""}`} onClick={() => setTab("text")}>📋 Text</button>
+      </div>
+
+      {tab === "link" ? (
+        <>
+          <Field label="Link zum Rezept">
+            <input
+              className="nest-input"
+              placeholder="https://www.chefkoch.de/rezepte/..."
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") importFromLink(); }}
+              autoFocus
+            />
+          </Field>
+          <button className="nest-btn nest-btn-primary" style={{ width: "100%", justifyContent: "center" }} onClick={importFromLink} disabled={loading}>
+            {loading ? "Lädt…" : "Rezept holen"}
+          </button>
+        </>
+      ) : (
+        <>
+          <Field label="Rezepttext einfügen">
+            <textarea
+              className="nest-textarea"
+              style={{ minHeight: 160 }}
+              placeholder={"Titel\n\nZutaten:\n...\n\nZubereitung:\n..."}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+            />
+          </Field>
+          <button className="nest-btn nest-btn-primary" style={{ width: "100%", justifyContent: "center" }} onClick={importFromText}>
+            Text auswerten
+          </button>
+        </>
+      )}
+
+      {error && <div style={{ fontSize: 13, color: "var(--red)", marginTop: 10 }}>{error}</div>}
+      <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 12 }}>
+        Das Ergebnis öffnet sich danach im normalen Rezept-Formular zur Kontrolle – dort kannst du noch alles anpassen, bevor du speicherst.
+      </div>
+    </Modal>
+  );
+}
+
+/* ---------------------------------------------------------------------- */
 /* REZEPT-VERFÜGBARKEIT                                                    */
 /* ---------------------------------------------------------------------- */
 
