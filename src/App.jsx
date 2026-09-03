@@ -3331,12 +3331,23 @@ export default function App() {
           onDelete={(id) => askConfirm("Einkaufsartikel wirklich löschen?", () => actions.deleteShopping(id))}
           onClose={closeModal} />
       )}
-      {modal?.type === "recipe" && (
-        <RecipeModal initial={modal.payload?.id ? modal.payload : null}
-          onSave={actions.saveRecipe}
-          onDelete={(id) => askConfirm("Rezept wirklich löschen?", () => actions.deleteRecipe(id))}
-          onClose={closeModal} />
-      )}
+     {modal?.type === "recipe" && (
+  <RecipeModal initial={modal.payload?.id ? modal.payload : null}
+    defaultName={!modal.payload?.id ? modal.payload?.name : null}
+    defaultDescription={!modal.payload?.id ? modal.payload?.description : null}
+    defaultServings={!modal.payload?.id ? modal.payload?.servings : null}
+    defaultPrepTime={!modal.payload?.id ? modal.payload?.prepTime : null}
+    defaultCategory={!modal.payload?.id ? modal.payload?.category : null}
+    defaultIngredients={!modal.payload?.id ? modal.payload?.ingredients : null}
+    onSave={actions.saveRecipe}
+    onDelete={(id) => askConfirm("Rezept wirklich löschen?", () => actions.deleteRecipe(id))}
+    onClose={closeModal} />
+)}
+{modal?.type === "recipeImport" && (
+  <RecipeImportModal
+    onImported={(data) => openModal("recipe", data)}
+    onClose={closeModal} />
+)}
       {modal?.type === "note" && (
         <NoteModal initial={modal.payload?.id ? modal.payload : null}
           onSave={actions.saveNote}
