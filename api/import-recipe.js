@@ -161,3 +161,20 @@ function cleanupIngredientList(rawList) {
   }
   return cleaned;
 }
+    const ingredients = cleanupIngredientList(
+      (recipe.recipeIngredient || []).map((i) => (typeof i === "string" ? i : toText(i)))
+    );
+
+    const result = {
+      title: recipe.name || "",
+      image: typeof recipe.image === "string" ? recipe.image : recipe.image?.url || recipe.image?.[0] || "",
+      servings: recipe.recipeYield || "",
+      ingredients: ingredients,
+      steps: flattenInstructions(recipe.recipeInstructions),
+    };
+
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: "Unerwarteter Fehler: " + err.message });
+  }
+}
