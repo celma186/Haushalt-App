@@ -186,7 +186,7 @@ async function fetchProductFromBarcode(barcode) {
   return data.product;
 }
 
-const UNITS = ["Stück", "g", "kg", "ml", "l", "Packung", "Dose", "Becher", "Bund"];
+const UNITS = ["Stück", "g", "kg", "ml", "l", "TL", "EL", "Prise", "Zehe", "Scheibe", "Päckchen", "Tasse", "Packung", "Dose", "Becher", "Bund"];
 /* Einheiten, für die eine Packungsgröße (Inhalt je Packung) sinnvoll ist. */
 const PACKAGE_CAPABLE_UNITS = ["Packung", "Dose", "Becher", "Stück", "Bund"];
 /* Einheiten mit fester Umrechnung untereinander (für Packungsinhalte i.d.R. Gewicht/Volumen). */
