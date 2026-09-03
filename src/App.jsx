@@ -1714,7 +1714,49 @@ function analyzeRecipe(recipe, inventory, substitutes = {}) {
       });
     }
   });
-  return { missing, soonExpiringUsed, cookable: missing.length === 0 };
+   return { missing, soonExpiringUsed, cookable: missing.length === 0 };
+}
+
+/* Prüft alle noch nicht gekochten Mahlzeiten einer Woche zusammen: simuliert
+   den Verbrauch Tag für Tag aus einem gemeinsamen Vorrats-Topf und zählt, für
+   wie viele Mahlzeiten eine mehrfach benötigte Zutat tatsächlich noch reicht. */
+function analyzeWeeklyPlan(weekDates, recipes, mealPlan, cookedMeals, inventory) {
+  const usable = inventory.filter((i) => urgencyOfExpiry(i.expiry) !== "abgelaufen");
+  const remainingQty = {};
+  usable.forEach((item) => { remainingQty[item.id] = item.quantity; });
+
+  const plannedMeals = weekDates
+    .filter((d) => mealPlan[d] && cookedMeals?.[d] !== mealPlan[d])
+    .map((d) => ({ date: d, recipe: recipes.find((r) => r.id === mealPlan[d]) }))
+    .filter((m) => m.recipe);
+
+  const perIngredient = {};
+
+  plannedMeals.forEach(({ recipe }) => {
+    recipe.ingredients.forEach((ing) => {
+      if (SMALL_AMOUNT_UNITS.includes(ing.unit)) return;
+      const match = matchIngredient(ing, usable);
+      const items = match.matches.filter((item) => item.quantity > 0);
+      if (items.length === 0) return;
+
+      const key = ing.name.trim().toLowerCase();
+      if (!perIngredient[key]) perIngredient[key] = { label: ing.name, neededCount: 0, coveredCount: 0 };
+      perIngredient[key].neededCount += 1;
+
+      const snapshot = items.map((item) => ({ ...item, quantity: remainingQty[item.id] }));
+      const convertible = snapshot.filter((item) => availableInUnit(item, ing.unit) !== null);
+      if (convertible.length === 0) return;
+
+      const available = convertible.reduce((sum, item) => sum + availableInUnit(item, ing.unit), 0);
+      if (available + 1e-9 >= ing.amount) {
+        perIngredient[key].coveredCount += 1;
+        const { updates } = deductAmountAcrossItems(convertible, ing.amount, ing.unit);
+        Object.entries(updates).forEach(([id, qty]) => { remainingQty[id] = qty; });
+      }
+    });
+  });
+
+  return Object.values(perIngredient).filter((e) => e.neededCount > 1 && e.coveredCount < e.neededCount);
 }
 
 function RecipeCard({ recipe, inventory, onEdit, onAddMissing, onPlan }) {
