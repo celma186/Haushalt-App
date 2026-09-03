@@ -3001,6 +3001,7 @@ const NAV_ITEMS = [
 
 export default function App() {
   const [state, setState] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => loadCurrentUser());
   const [page, setPage] = useState("dashboard");
   const [modal, setModal] = useState(null);
   const [loaded, setLoaded] = useState(false);
