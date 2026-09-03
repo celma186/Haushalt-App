@@ -3510,11 +3510,17 @@ export default function App() {
       <GlobalStyles />
       <div className="nest-shell">
         <aside className="nest-sidebar">
-          <div className="nest-brand">
+                  <div className="nest-brand">
             <div className="nest-brand-mark">🌷</div>
             <div>
               <div className="serif" style={{ fontSize: 16 }}>{state.settings.householdName}</div>
-              <div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>Haushaltsplaner</div>
+              <div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>
+                Angemeldet als {currentUser === "person1" ? state.settings.person1Name : state.settings.person2Name}
+                {" · "}
+                <button onClick={switchUser} style={{ background: "none", border: "none", padding: 0, color: "var(--rose-deep)", fontWeight: 700, cursor: "pointer", fontSize: 11.5 }}>
+                  Wechseln
+                </button>
+              </div>
             </div>
           </div>
           <nav className="nest-nav">
