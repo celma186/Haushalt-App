@@ -156,6 +156,7 @@ export default async function handler(req, res) {
 
     const result = {
       title: recipe.name || "",
+      description: recipe.description || "",
       image: typeof recipe.image === "string" ? recipe.image : recipe.image?.url || recipe.image?.[0] || "",
       servings: recipe.recipeYield || "",
       ingredients: ingredients,
