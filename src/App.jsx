@@ -3497,7 +3497,7 @@ export default function App() {
   }
 
   const pages = {
-    dashboard: <DashboardPage state={state} actions={actions} openModal={openModal} setPage={setPage} navigate={navigate} />,
+       dashboard: <DashboardPage state={state} actions={actions} openModal={openModal} setPage={setPage} navigate={navigate} currentUser={currentUser} />,
     haushalt: <CleaningPage state={state} actions={actions} openModal={openModal} pendingFilter={pendingFilter} consumeFilter={consumeFilter} />,
     einkaufen: <ShoppingPage state={state} actions={actions} openModal={openModal} pendingFilter={pendingFilter} consumeFilter={consumeFilter} />,
     essen: <MealsPage state={state} actions={actions} openModal={openModal} pendingFilter={pendingFilter} consumeFilter={consumeFilter} />,
