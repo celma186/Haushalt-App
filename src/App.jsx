@@ -2546,7 +2546,12 @@ function MealsPage({ state, actions, openModal, pendingFilter, consumeFilter }) 
           <button className={`nest-pill ${tab === "plan" ? "active" : ""}`} onClick={() => setTab("plan")}>Wochenplan</button>
           <button className={`nest-pill ${tab === "rezepte" ? "active" : ""}`} onClick={() => setTab("rezepte")}>Rezepte</button>
         </div>
-        {tab === "rezepte" && <button className="nest-btn nest-btn-primary" onClick={() => openModal("recipe")}>+ Rezept</button>}
+        {tab === "rezepte" && (
+  <div style={{ display: "flex", gap: 8 }}>
+    <button className="nest-btn nest-btn-primary" onClick={() => openModal("recipe")}>+ Rezept</button>
+    <button className="nest-btn" onClick={() => openModal("recipeImport")}>📥 Importieren</button>
+  </div>
+)}
       </div>
 
       {tab === "plan" ? (
