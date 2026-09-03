@@ -2581,13 +2581,18 @@ function MealsPage({ state, actions, openModal, pendingFilter, consumeFilter }) 
     }
   }, [pendingFilter, consumeFilter]);
 
-  const cookableNow = useMemo(() => {
+   const cookableNow = useMemo(() => {
     return recipes
       .map((r) => ({ recipe: r, analysis: analyzeRecipe(r, inventory) }))
       .filter((x) => x.analysis.cookable)
       .sort((a, b) => b.analysis.soonExpiringUsed.length - a.analysis.soonExpiringUsed.length)
       .map((x) => x.recipe);
   }, [recipes, inventory]);
+
+  const weeklyShortages = useMemo(
+    () => analyzeWeeklyPlan(weekDays, recipes, mealPlan, cookedMeals, inventory),
+    [weekDays, recipes, mealPlan, cookedMeals, inventory]
+  );
 
   return (
     <div>
