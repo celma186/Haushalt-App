@@ -46,7 +46,6 @@ export default async function handler(req, res) {
       return;
     }
 
-    // Hilfsfunktion: löst @id-Verweise auf, indem sie im gesamten Datensatz nachschaut
     const resolveRef = (val) => {
       if (!val) return null;
       if (typeof val === "string") return val;
@@ -64,7 +63,6 @@ export default async function handler(req, res) {
       return "";
     };
 
-    // Zubereitungsschritte einsammeln – auch aus verschachtelten "Abschnitten" (HowToSection)
     const flattenInstructions = (raw) => {
       if (!raw) return [];
       const list = Array.isArray(raw) ? raw : [raw];
@@ -82,7 +80,35 @@ export default async function handler(req, res) {
       return steps;
     };
 
-    const ingredients = recipe.recipeIngredient || recipe.ingredients || [];
+    // Erkennt Einträge, die NUR aus einer Mengenangabe bestehen (z.B. "1 TL",
+    // "etwas", "1 Stück") – ohne Zutatenname. Solche Einträge liefert Chefkoch
+    // manchmal getrennt von der zugehörigen Zutat als eigenen Listeneintrag.
+    const QUANTITY_ONLY = /^(\d+([.,\/]\d+)?|etwas|einige|ein paar)\s*(g|kg|ml|l|el|tl|stück|stk|prise[n]?|bund|zehe[n]?|scheibe[n]?|dose[n]?|päckchen|tasse[n]?|zweig[e]?)?\.?$/i;
+
+    // Fügt versehentlich getrennte Mengen-/Namens-Paare wieder zusammen,
+    // egal in welcher Reihenfolge sie geliefert wurden.
+    function cleanupIngredientList(rawList) {
+      const cleaned = [];
+      for (let i = 0; i < rawList.length; i++) {
+        const current = (rawList[i] || "").trim();
+        const next = (rawList[i + 1] || "").trim();
+        if (!current) continue;
+
+        if (QUANTITY_ONLY.test(current) && next && !QUANTITY_ONLY.test(next)) {
+          cleaned.push(`${current} ${next}`);
+          i++;
+        } else if (!QUANTITY_ONLY.test(current) && next && QUANTITY_ONLY.test(next)) {
+          cleaned.push(`${next} ${current}`);
+          i++;
+        } else {
+          cleaned.push(current);
+        }
+      }
+      return cleaned;
+    }
+
+    const rawIngredients = recipe.recipeIngredient || recipe.ingredients || [];
+    const ingredients = cleanupIngredientList(rawIngredients);
     const instructions = flattenInstructions(recipe.recipeInstructions);
 
     let image = recipe.image;
