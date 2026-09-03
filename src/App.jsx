@@ -12,6 +12,25 @@ import { parseRecipeText, parseIngredientLine } from "./recipeParser";
 // verwalten wollt (z.B. pro Paar eine eigene ID).
 const HOUSEHOLD_ID = "shared";
 const TABLE = "household_state";
+const CURRENT_USER_KEY = "nest_current_user";
+
+function loadCurrentUser() {
+  try {
+    const stored = localStorage.getItem(CURRENT_USER_KEY);
+    return stored === "person1" || stored === "person2" ? stored : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveCurrentUser(id) {
+  try {
+    if (id) localStorage.setItem(CURRENT_USER_KEY, id);
+    else localStorage.removeItem(CURRENT_USER_KEY);
+  } catch {
+    /* localStorage evtl. nicht verfügbar – Auswahl gilt dann nur für diese Sitzung */
+  }
+}
 
 /* ---------------------------------------------------------------------- */
 /* SUPABASE-CLIENT                                                         */
