@@ -76,3 +76,33 @@ export function parseRecipeText(rawText) {
 
   return { title, ingredients, instructions };
 }
+
+// Zerlegt eine einzelne Zutaten-Zeile (z.B. "350 g Spaghetti") in
+// Menge, Einheit und Name – für die automatische Übernahme ins Formular.
+const UNIT_ALIASES = {
+  g: "g", kg: "kg", ml: "ml", l: "l",
+  el: "EL", tl: "TL",
+  "stück": "Stück", stk: "Stück",
+  prise: "Prise", prisen: "Prise",
+  bund: "Bund",
+  zehe: "Zehe", zehen: "Zehe",
+  scheibe: "Scheibe", scheiben: "Scheibe",
+  dose: "Dose", dosen: "Dose",
+  "päckchen": "Päckchen",
+  tasse: "Tasse", tassen: "Tasse",
+};
+
+export function parseIngredientLine(line) {
+  const cleaned = line.trim();
+  const match = cleaned.match(/^(\d+([.,\/]\d+)?)\s*([a-zäöüß]+)?\.?\s*(.*)$/i);
+
+  if (!match) return { name: cleaned, product: "", amount: "", unit: "Stück" };
+
+  const [, amountRaw, , unitRaw, rest] = match;
+  const amount = amountRaw.replace(",", ".");
+  const unitKey = (unitRaw || "").toLowerCase();
+  const unit = UNIT_ALIASES[unitKey] || "Stück";
+  const name = unitRaw && UNIT_ALIASES[unitKey] ? rest.trim() : `${unitRaw || ""} ${rest}`.trim();
+
+  return { name: name || cleaned, product: "", amount, unit };
+}
