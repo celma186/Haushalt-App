@@ -3147,10 +3147,20 @@ export default function App() {
       closeModal();
       notify("Aufgabe gespeichert.");
     },
-    deleteTask: (id) => {
-      setState((prev) => ({ ...prev, tasks: prev.tasks.filter((t) => t.id !== id) }));
+        deleteTask: (id) => {
+      let removed = null;
+      setState((prev) => {
+        removed = prev.tasks.find((t) => t.id === id) || null;
+        return { ...prev, tasks: prev.tasks.filter((t) => t.id !== id) };
+      });
       closeModal();
-      notify("Aufgabe gelöscht.");
+      if (removed) {
+        notifyWithUndo(
+          "Aufgabe gelöscht.",
+          () => {},
+          () => setState((prev) => ({ ...prev, tasks: [...prev.tasks, removed] }))
+        );
+      }
     },
     // Legt einen Artikel neu an oder aktualisiert ihn. Beim Neuanlegen wird
     // geprüft, ob am selben Ort bereits dasselbe Produkt liegt – falls ja,
