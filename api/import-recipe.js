@@ -21,28 +21,41 @@ export default async function handler(req, res) {
     }
 
     const html = await response.text();
-
     const matches = [...html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+
     let recipe = null;
+    let allNodes = [];
 
     for (const match of matches) {
       try {
         let data = JSON.parse(match[1].trim());
         const candidates = Array.isArray(data) ? data : data["@graph"] || [data];
+        allNodes = allNodes.concat(candidates);
         const found = candidates.find((item) => {
           const type = item["@type"];
           return type === "Recipe" || (Array.isArray(type) && type.includes("Recipe"));
         });
-        if (found) { recipe = found; break; }
+        if (found && !recipe) recipe = found;
       } catch {
         // dieses Script-Tag war kein gültiges JSON – überspringen
       }
     }
 
     if (!recipe) {
-      res.status(404).json({ error: "Kein strukturiertes Rezept auf dieser Seite gefunden.", htmlLength: html.length });
+      res.status(404).json({ error: "Kein strukturiertes Rezept auf dieser Seite gefunden." });
       return;
     }
+
+    // Hilfsfunktion: löst @id-Verweise auf, indem sie im gesamten Datensatz nachschaut
+    const resolveRef = (val) => {
+      if (!val) return null;
+      if (typeof val === "string") return val;
+      if (val["@id"] && !val.url) {
+        const target = allNodes.find((n) => n["@id"] === val["@id"]);
+        return target || val;
+      }
+      return val;
+    };
 
     const toText = (val) => {
       if (!val) return "";
@@ -51,18 +64,42 @@ export default async function handler(req, res) {
       return "";
     };
 
+    // Zubereitungsschritte einsammeln – auch aus verschachtelten "Abschnitten" (HowToSection)
+    const flattenInstructions = (raw) => {
+      if (!raw) return [];
+      const list = Array.isArray(raw) ? raw : [raw];
+      let steps = [];
+      for (const item of list) {
+        if (typeof item === "string") {
+          steps.push(item);
+        } else if (item?.itemListElement) {
+          steps = steps.concat(flattenInstructions(item.itemListElement));
+        } else {
+          const text = toText(item);
+          if (text) steps.push(text);
+        }
+      }
+      return steps;
+    };
+
     const ingredients = recipe.recipeIngredient || recipe.ingredients || [];
-    const instructionsRaw = recipe.recipeInstructions || [];
-    const instructions = Array.isArray(instructionsRaw)
-      ? instructionsRaw.map(toText).filter(Boolean)
-      : [toText(instructionsRaw)].filter(Boolean);
+    const instructions = flattenInstructions(recipe.recipeInstructions);
+
+    let image = recipe.image;
+    image = resolveRef(image);
+    if (Array.isArray(image)) image = image[0];
+    if (image && typeof image === "object") image = image.url || image.contentUrl || "";
+    if (typeof image !== "string") image = "";
+
+    let servings = recipe.recipeYield || "";
+    if (Array.isArray(servings)) servings = servings[servings.length - 1] || "";
 
     res.status(200).json({
       title: recipe.name || "",
       ingredients,
       instructions,
-      image: Array.isArray(recipe.image) ? recipe.image[0] : (recipe.image?.url || recipe.image || ""),
-      servings: recipe.recipeYield || "",
+      image,
+      servings,
     });
   } catch (err) {
     res.status(500).json({ error: "Seite konnte nicht abgerufen werden.", detail: String(err) });
