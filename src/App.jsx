@@ -3398,10 +3398,20 @@ export default function App() {
       closeModal();
       notify("Notiz gespeichert.");
     },
-    deleteNote: (id) => {
-      setState((prev) => ({ ...prev, notes: prev.notes.filter((n) => n.id !== id) }));
+       deleteNote: (id) => {
+      let removed = null;
+      setState((prev) => {
+        removed = prev.notes.find((n) => n.id === id) || null;
+        return { ...prev, notes: prev.notes.filter((n) => n.id !== id) };
+      });
       closeModal();
-      notify("Notiz gelöscht.");
+      if (removed) {
+        notifyWithUndo(
+          "Notiz gelöscht.",
+          () => {},
+          () => setState((prev) => ({ ...prev, notes: [...prev.notes, removed] }))
+        );
+      }
     },
     updateSettings: (settings) => { setState((prev) => ({ ...prev, settings })); notify("Einstellungen gespeichert."); },
     resetData: () => { setState(buildDemoState()); notify("Daten wurden zurückgesetzt."); },
