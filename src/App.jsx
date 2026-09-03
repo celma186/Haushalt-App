@@ -1330,14 +1330,18 @@ function ShoppingItemModal({ initial, onSave, onDelete, onClose }) {
 /* REZEPT-MODAL                                                            */
 /* ---------------------------------------------------------------------- */
 
-function RecipeModal({ initial, onSave, onDelete, onClose }) {
-  const [name, setName] = useState(initial?.name || "");
-  const [description, setDescription] = useState(initial?.description || "");
-  const [servings, setServings] = useState(initial?.servings || 4);
-  const [prepTime, setPrepTime] = useState(initial?.prepTime || 30);
-  const [category, setCategory] = useState(initial?.category || "");
+function RecipeModal({ initial, defaultName, defaultDescription, defaultServings, defaultPrepTime, defaultCategory, defaultIngredients, onSave, onDelete, onClose }) {
+  const [name, setName] = useState(initial?.name || defaultName || "");
+  const [description, setDescription] = useState(initial?.description || defaultDescription || "");
+  const [servings, setServings] = useState(initial?.servings || defaultServings || 4);
+  const [prepTime, setPrepTime] = useState(initial?.prepTime || defaultPrepTime || 30);
+  const [category, setCategory] = useState(initial?.category || defaultCategory || "");
   const [ingredients, setIngredients] = useState(
-    initial?.ingredients?.length ? initial.ingredients.map((i) => ({ product: "", ...i })) : [{ name: "", product: "", amount: "", unit: "Stück" }]
+    initial?.ingredients?.length
+      ? initial.ingredients.map((i) => ({ product: "", ...i }))
+      : defaultIngredients?.length
+      ? defaultIngredients.map((i) => ({ product: "", ...i }))
+      : [{ name: "", product: "", amount: "", unit: "Stück" }]
   );
 
   const updateIngredient = (idx, field, value) => {
