@@ -3310,10 +3310,20 @@ export default function App() {
       closeModal();
       notify("Rezept gespeichert.");
     },
-    deleteRecipe: (id) => {
-      setState((prev) => ({ ...prev, recipes: prev.recipes.filter((r) => r.id !== id) }));
+       deleteRecipe: (id) => {
+      let removed = null;
+      setState((prev) => {
+        removed = prev.recipes.find((r) => r.id === id) || null;
+        return { ...prev, recipes: prev.recipes.filter((r) => r.id !== id) };
+      });
       closeModal();
-      notify("Rezept gelöscht.");
+      if (removed) {
+        notifyWithUndo(
+          "Rezept gelöscht.",
+          () => {},
+          () => setState((prev) => ({ ...prev, recipes: [...prev.recipes, removed] }))
+        );
+      }
     },
     addMissingIngredients: (recipe, missing) => {
       let addedCount = 0;
