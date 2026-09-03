@@ -1567,7 +1567,7 @@ function matchIngredient(ingredient, inventory) {
 }
 
 function ingredientLabel(ing) {
-  return ing.product ? ing.product : ing.name;
+  return ing.product ? `${ing.name} (${ing.product})` : ing.name;
 }
 
 /* Einheiten-Umrechnung: g/kg und ml/l. Andere Einheiten (Stück, Packung, …)
