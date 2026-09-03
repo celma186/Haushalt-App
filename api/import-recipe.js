@@ -74,7 +74,7 @@ export default async function handler(req, res) {
     const QUANTITY_ONLY = /^(\d+([.,\/]\d+)?|etwas|einige|ein paar)\s*(g|kg|ml|l|el|tl|stück|stk|prise[n]?|bund|zehe[n]?|scheibe[n]?|dose[n]?|päckchen|tasse[n]?|zweig[e]?)?\.?$/i;
     const AMOUNT_QUALIFIER_WORDS = /\b(gestr\.?|gestrichen(?:er|e|en)?|gehäuft(?:er|e|en)?|glatt(?:er|e|en)?)\b/gi;
     const APPROX_QUANTITY_PREFIX = /^(etwas|einige|ein paar|nach belieben|nach geschmack)\s+/i;
-    const AMOUNT_UNIT_START = /^(\d+(?:[.,\/]\d+)?)\s*(g|kg|ml|l|el|tl|stück|stk|prise[n]?|bund|zehe[n]?|scheibe[n]?|dose[n]?|päckchen|tasse[n]?|zweig[e]?)?\.?\s*/i;
+    const AMOUNT_UNIT_START = /^(\d+(?:[.,\/]\d+)?)\s*(g|kg|ml|l|el|tl|stück|stk|prise[n]?|bund|zehe[n]?|scheibe[n]?|dose[n]?|päckchen|tasse[n]?|zweig[e]?)?\s*\.?\s*/i;
 
     const UNIT_MAP = {
       el: "EL", tl: "TL", g: "g", kg: "kg", ml: "ml", l: "l",
@@ -96,7 +96,7 @@ export default async function handler(req, res) {
 
     // "Pfeffer, schwarzer" -> { name: "Pfeffer", product: "schwarzer" }
     function splitNameProduct(text) {
-      const cleaned = text.replace(/^,\s*/, "").trim();
+      const cleaned = text.replace(/^[.,]\s*/, "").trim();
       const parts = cleaned.split(",").map((p) => p.trim()).filter(Boolean);
       if (parts.length >= 2) {
         return { name: parts[0], product: parts.slice(1).join(", ") };
@@ -128,7 +128,7 @@ export default async function handler(req, res) {
         return "";
       });
 
-      text = text.replace(/^,\s*/, "").replace(/\s+/g, " ").trim();
+      text = text.replace(/^[.,]\s*/, "").replace(/\s+/g, " ").trim();
 
       const { name, product } = splitNameProduct(text);
       const productWithNote = notes.length > 0
