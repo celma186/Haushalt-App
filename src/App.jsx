@@ -3194,10 +3194,20 @@ export default function App() {
       closeModal();
       notify(merged ? "Menge zu vorhandenem Artikel hinzugefügt." : "Artikel gespeichert.");
     },
-    deleteInventory: (id) => {
-      setState((prev) => ({ ...prev, inventory: prev.inventory.filter((i) => i.id !== id) }));
+       deleteInventory: (id) => {
+      let removed = null;
+      setState((prev) => {
+        removed = prev.inventory.find((i) => i.id === id) || null;
+        return { ...prev, inventory: prev.inventory.filter((i) => i.id !== id) };
+      });
       closeModal();
-      notify("Artikel gelöscht.");
+      if (removed) {
+        notifyWithUndo(
+          "Artikel gelöscht.",
+          () => {},
+          () => setState((prev) => ({ ...prev, inventory: [...prev.inventory, removed] }))
+        );
+      }
     },
     adjustQuantity: (item, delta) => {
       setState((prev) => {
