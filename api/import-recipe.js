@@ -1,5 +1,3 @@
-// Serverless-Funktion: Ruft eine Rezept-Webseite ab und liest die
-// standardisierten Rezept-Daten aus (falls die Seite welche hinterlegt hat).
 export default async function handler(req, res) {
   const url = req.query.url;
   if (!url) {
@@ -9,8 +7,19 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; DaheimApp/1.0)" },
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "de-DE,de;q=0.9,en;q=0.8",
+        "Referer": "https://www.google.com/",
+      },
     });
+
+    if (!response.ok) {
+      res.status(502).json({ error: `Seite hat mit Status ${response.status} geantwortet – vermutlich blockiert.` });
+      return;
+    }
+
     const html = await response.text();
 
     const matches = [...html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
@@ -31,7 +40,7 @@ export default async function handler(req, res) {
     }
 
     if (!recipe) {
-      res.status(404).json({ error: "Kein strukturiertes Rezept auf dieser Seite gefunden." });
+      res.status(404).json({ error: "Kein strukturiertes Rezept auf dieser Seite gefunden.", htmlLength: html.length });
       return;
     }
 
@@ -55,7 +64,7 @@ export default async function handler(req, res) {
       image: Array.isArray(recipe.image) ? recipe.image[0] : (recipe.image?.url || recipe.image || ""),
       servings: recipe.recipeYield || "",
     });
-  } catch {
-    res.status(500).json({ error: "Seite konnte nicht abgerufen werden." });
+  } catch (err) {
+    res.status(500).json({ error: "Seite konnte nicht abgerufen werden.", detail: String(err) });
   }
 }
