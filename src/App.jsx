@@ -1389,7 +1389,7 @@ function RecipeModal({ initial, defaultName, defaultDescription, defaultServings
       <Field label="Beschreibung">
         <textarea className="nest-textarea" value={description} onChange={(e) => setDescription(e.target.value)} />
       </Field>
-      <div className="nest-grid-3">
+           <div className="nest-grid-3">
         <Field label="Portionen">
           <input type="number" className="nest-input" value={servings} onChange={(e) => setServings(e.target.value)} />
         </Field>
@@ -1400,6 +1400,11 @@ function RecipeModal({ initial, defaultName, defaultDescription, defaultServings
           <input className="nest-input" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Pasta" />
         </Field>
       </div>
+      {Number(servings) !== Number(baseServings) && (
+        <button className="nest-btn nest-btn-sm" style={{ marginBottom: 14 }} onClick={scaleIngredients}>
+          🔄 Zutatenmengen an {servings} Portionen anpassen
+        </button>
+      )}
       <Field label="Zutaten">
         <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 8 }}>
           Kategorie ist die allgemeine Zutat (z.B. „Nudeln“), Produkt optional das konkrete Produkt (z.B. „Spaghetti“) – so kann genauer mit den Vorräten abgeglichen werden.
