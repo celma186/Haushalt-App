@@ -1426,23 +1426,29 @@ function extractServingsNumber(raw) {
   return match ? Number(match[0]) : null;
 }
 
-const applyParsed = ({ title, description, ingredients, instructions, servings }) => {
-  const stepsText = (instructions || [])
-    .map((step, idx) => `${idx + 1}. ${step}`)
-    .join("\n");
-  const fullDescription = [description, stepsText].filter(Boolean).join("\n\n");
+function RecipeImportModal({ onImported, onClose }) {
+  const [tab, setTab] = useState("link");
+  const [url, setUrl] = useState("");
+  const [text, setText] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  onImported({
-    name: title || "",
-    description: fullDescription,
-    servings: extractServingsNumber(servings) || 4,
-    prepTime: 30,
-    category: "",
-    ingredients: (ingredients || []).map((ing) =>
-      typeof ing === "string" ? parseIngredientLine(ing) : ing
-    ),
-  });
-};
+  const applyParsed = ({ title, description, ingredients, instructions, servings }) => {
+    const stepsText = (instructions || [])
+      .map((step, idx) => `${idx + 1}. ${step}`)
+      .join("\n");
+    const fullDescription = [description, stepsText].filter(Boolean).join("\n\n");
+    onImported({
+      name: title || "",
+      description: fullDescription,
+      servings: extractServingsNumber(servings) || 4,
+      prepTime: 30,
+      category: "",
+      ingredients: (ingredients || []).map((ing) =>
+        typeof ing === "string" ? parseIngredientLine(ing) : ing
+      ),
+    });
+  };
 
   const importFromLink = async () => {
     if (!url.trim()) return;
@@ -1479,7 +1485,6 @@ const applyParsed = ({ title, description, ingredients, instructions, servings }
         <button className={`nest-pill ${tab === "link" ? "active" : ""}`} onClick={() => setTab("link")}>🔗 Link</button>
         <button className={`nest-pill ${tab === "text" ? "active" : ""}`} onClick={() => setTab("text")}>📋 Text</button>
       </div>
-
       {tab === "link" ? (
         <>
           <Field label="Link zum Rezept">
@@ -1512,7 +1517,6 @@ const applyParsed = ({ title, description, ingredients, instructions, servings }
           </button>
         </>
       )}
-
       {error && <div style={{ fontSize: 13, color: "var(--red)", marginTop: 10 }}>{error}</div>}
       <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 12 }}>
         Das Ergebnis öffnet sich danach im normalen Rezept-Formular zur Kontrolle – dort kannst du noch alles anpassen, bevor du speicherst.
