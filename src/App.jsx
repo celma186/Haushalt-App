@@ -2224,11 +2224,12 @@ function DashboardPage({ state, actions, openModal, setPage, navigate, currentUs
       .map((x) => x.recipe);
   }, [recipes, inventory]);
 
+    // Unabhängig von der Personalisierung - zeigt weiterhin beide Personen.
   const byPerson = useMemo(() => {
     const groups = { person1: [], person2: [], gemeinsam: [] };
-    todayTasks.filter((tk) => tk.date === t).forEach((tk) => groups[tk.assignee]?.push(tk));
+    tasks.filter((tk) => !tk.completed && tk.date === t).forEach((tk) => groups[tk.assignee]?.push(tk));
     return groups;
-  }, [todayTasks, t]);
+  }, [tasks, t]);
 
   const openShoppingList = () => openModal("infoList", {
     title: "Einkaufen", icon: "🛒",
