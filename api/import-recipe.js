@@ -106,7 +106,7 @@ export default async function handler(req, res) {
         }
         // Chefkoch liefert manche Zutaten-Zusätze (z.B. "gestrichen") verrutscht
         // an den Anfang, wodurch ein führendes Komma entsteht – bereinigen.
-        combined = combined.replace(/,\s*/, " ").replace(/\s+/g, " ").trim();
+       combined = combined.replace(/^,\s*/, "").replace(/\s+/g, " ").trim();
         cleaned.push(combined);
       }
       return cleaned;
