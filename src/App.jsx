@@ -2148,6 +2148,7 @@ function DashboardPage({ state, actions, openModal, setPage, navigate }) {
           <button className="nest-fab" onClick={() => openModal("shopping")}><span className="nest-fab-icon">🛒</span>Einkauf</button>
           <button className="nest-fab" onClick={() => openModal("inventory")}><span className="nest-fab-icon">🥫</span>Lebensmittel</button>
           <button className="nest-fab" onClick={() => openModal("recipe")}><span className="nest-fab-icon">🍝</span>Rezept</button>
+          <button className="nest-fab" onClick={() => openModal("recipeImport")}><span className="nest-fab-icon">📥</span>Importieren</button>
           <button className="nest-fab" onClick={() => openModal("note")}><span className="nest-fab-icon">📝</span>Notiz</button>
         </div>
       </div>
