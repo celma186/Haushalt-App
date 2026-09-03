@@ -3557,7 +3557,8 @@ export default function App() {
         <InfoListModal {...modal.payload} onClose={closeModal} />
       )}
 
-      <Toast toast={toast} />
+           <Toast toast={toast} />
+      <UndoToast undoState={undoState} />
       {confirmState && (
         <ConfirmDialog
           message={confirmState.message}
