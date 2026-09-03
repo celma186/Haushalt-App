@@ -38,7 +38,7 @@ export default async function handler(req, res) {
         });
         if (found && !recipe) recipe = found;
       } catch {
-        // dieses Script-Tag war kein gültiges JSON – überspringen
+        // ungültiges JSON – überspringen
       }
     }
 
@@ -46,16 +46,6 @@ export default async function handler(req, res) {
       res.status(404).json({ error: "Kein strukturiertes Rezept auf dieser Seite gefunden." });
       return;
     }
-
-    const resolveRef = (val) => {
-      if (!val) return null;
-      if (typeof val === "string") return val;
-      if (val["@id"] && !val.url) {
-        const target = allNodes.find((n) => n["@id"] === val["@id"]);
-        return target || val;
-      }
-      return val;
-    };
 
     const toText = (val) => {
       if (!val) return "";
@@ -69,11 +59,9 @@ export default async function handler(req, res) {
       const list = Array.isArray(raw) ? raw : [raw];
       let steps = [];
       for (const item of list) {
-        if (typeof item === "string") {
-          steps.push(item);
-        } else if (item?.itemListElement) {
-          steps = steps.concat(flattenInstructions(item.itemListElement));
-        } else {
+        if (typeof item === "string") steps.push(item);
+        else if (item?.itemListElement) steps = steps.concat(flattenInstructions(item.itemListElement));
+        else {
           const text = toText(item);
           if (text) steps.push(text);
         }
@@ -81,77 +69,100 @@ export default async function handler(req, res) {
       return steps;
     };
 
-    // Erkennt Einträge, die NUR aus einer Mengenangabe bestehen (z.B. "1 TL",
-    // "etwas", "1 Stück") – ohne Zutatenname. Solche Einträge liefert Chefkoch
-    // manchmal getrennt von der zugehörigen Zutat als eigenen Listeneintrag.
+    /* ---- Zutaten in strukturierte Felder zerlegen (name/product/amount/unit) ---- */
+
     const QUANTITY_ONLY = /^(\d+([.,\/]\d+)?|etwas|einige|ein paar)\s*(g|kg|ml|l|el|tl|stück|stk|prise[n]?|bund|zehe[n]?|scheibe[n]?|dose[n]?|päckchen|tasse[n]?|zweig[e]?)?\.?$/i;
-
-    // Wörter, die nur beschreiben, WIE die Menge gemeint ist (z.B. "1
-    // gestrichener TL"), aber durch einen Chefkoch-Datenfehler fälschlich
-    // vorne im Zutatennamen landen. Werden aus dem Namen entfernt und
-    // stattdessen als Notiz in Klammern ans Ende gesetzt.
     const AMOUNT_QUALIFIER_WORDS = /\b(gestr\.?|gestrichen(?:er|e|en)?|gehäuft(?:er|e|en)?|glatt(?:er|e|en)?)\b/gi;
-
-    // Wörter, die eine ungefähre Menge ausdrücken (z.B. "etwas Salz"), statt
-    // einer echten Zahl. Werden ebenfalls als Notiz in Klammern angehängt.
     const APPROX_QUANTITY_PREFIX = /^(etwas|einige|ein paar|nach belieben|nach geschmack)\s+/i;
+    const AMOUNT_UNIT_START = /^(\d+(?:[.,\/]\d+)?)\s*(g|kg|ml|l|el|tl|stück|stk|prise[n]?|bund|zehe[n]?|scheibe[n]?|dose[n]?|päckchen|tasse[n]?|zweig[e]?)?\.?\s*/i;
 
-    // Räumt einen einzelnen Zutatennamen auf: entfernt verrutschte Kommas
-    // am Anfang sowie Mengen-Wörter wie "gestr." oder "etwas" – hängt sie
-    // aber als Notiz in Klammern ans Ende des Namens an, statt sie zu löschen.
-    function cleanIngredientName(text) {
+    const UNIT_MAP = {
+      el: "EL", tl: "TL", g: "g", kg: "kg", ml: "ml", l: "l",
+      stück: "Stück", stk: "Stück", prise: "Stück", prisen: "Stück",
+      bund: "Bund", zehe: "Stück", zehen: "Stück",
+      scheibe: "Stück", scheiben: "Stück", dose: "Dose", dosen: "Dose",
+      päckchen: "Packung", tasse: "Stück", tassen: "Stück",
+      zweig: "Stück", zweige: "Stück",
+    };
+
+    function parseAmount(raw) {
+      const cleaned = raw.replace(",", ".");
+      if (cleaned.includes("/")) {
+        const [a, b] = cleaned.split("/").map(Number);
+        return b ? a / b : Number(a) || 0;
+      }
+      return Number(cleaned) || 0;
+    }
+
+    // "Pfeffer, schwarzer" -> { name: "Pfeffer", product: "schwarzer" }
+    function splitNameProduct(text) {
+      const cleaned = text.replace(/^,\s*/, "").trim();
+      const parts = cleaned.split(",").map((p) => p.trim()).filter(Boolean);
+      if (parts.length >= 2) {
+        return { name: parts[0], product: parts.slice(1).join(", ") };
+      }
+      return { name: cleaned, product: "" };
+    }
+
+    // Baut aus einem rohen Zutaten-Text ein Objekt { name, product, amount, unit }.
+    function parseIngredient(raw) {
+      let text = (raw || "").trim();
       const notes = [];
 
-      let cleaned = text.replace(/^,\s*/, "");
-
-      cleaned = cleaned.replace(AMOUNT_QUALIFIER_WORDS, (match) => {
-        notes.push(match.trim());
-        return "";
-      });
-
-      cleaned = cleaned.replace(APPROX_QUANTITY_PREFIX, (match, word) => {
+      text = text.replace(APPROX_QUANTITY_PREFIX, (m, word) => {
         notes.push(word.trim());
         return "";
       });
 
-      cleaned = cleaned
-        .replace(/\s+/g, " ")
-        .replace(/^,\s*/, "")
-        .trim();
-
-      if (notes.length > 0) {
-        cleaned = `${cleaned} (${notes.join(", ")})`;
+      let amount = 0;
+      let unit = "Stück";
+      const m = text.match(AMOUNT_UNIT_START);
+      if (m) {
+        amount = parseAmount(m[1]);
+        if (m[2]) unit = UNIT_MAP[m[2].toLowerCase()] || m[2];
+        text = text.slice(m[0].length);
       }
 
-      return cleaned;
+      text = text.replace(AMOUNT_QUALIFIER_WORDS, (match) => {
+        notes.push(match.trim());
+        return "";
+      });
+
+      text = text.replace(/^,\s*/, "").replace(/\s+/g, " ").trim();
+
+      const { name, product } = splitNameProduct(text);
+      const productWithNote = notes.length > 0
+        ? `${product ? product + " " : ""}(${notes.join(", ")})`.trim()
+        : product;
+
+      return { name: name || text, product: productWithNote, amount, unit };
     }
 
-    // Fügt versehentlich getrennte Mengen-/Namens-Paare wieder zusammen,
-    // egal in welcher Reihenfolge sie geliefert wurden.
-    function cleanupIngredientList(rawList) {
-      const cleaned = [];
+    // Fügt getrennte Mengen-/Namens-Paare wieder zusammen und baut daraus
+    // strukturierte Zutaten-Objekte.
+    function buildIngredients(rawList) {
+      const result = [];
       for (let i = 0; i < rawList.length; i++) {
         const current = (rawList[i] || "").trim();
         const next = (rawList[i + 1] || "").trim();
         if (!current) continue;
 
-        let combined;
+        let combinedText;
         if (QUANTITY_ONLY.test(current) && next && !QUANTITY_ONLY.test(next)) {
-          combined = `${current} ${cleanIngredientName(next)}`;
+          combinedText = `${current} ${next}`;
           i++;
         } else if (!QUANTITY_ONLY.test(current) && next && QUANTITY_ONLY.test(next)) {
-          combined = `${next} ${cleanIngredientName(current)}`;
+          combinedText = `${next} ${current}`;
           i++;
         } else {
-          combined = cleanIngredientName(current);
+          combinedText = current;
         }
-        cleaned.push(combined.replace(/\s+/g, " ").trim());
+        result.push(parseIngredient(combinedText));
       }
-      return cleaned;
+      return result;
     }
 
-console.log("RAW ZUTATEN:", recipe.recipeIngredient);
-    const ingredients = cleanupIngredientList(
+    const ingredients = buildIngredients(
       (recipe.recipeIngredient || []).map((i) => (typeof i === "string" ? i : toText(i)))
     );
 
