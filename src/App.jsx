@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
+import { parseRecipeText, parseIngredientLine } from "./recipeParser";
 
 /* ---------------------------------------------------------------------- */
 /* KONSTANTEN                                                              */
