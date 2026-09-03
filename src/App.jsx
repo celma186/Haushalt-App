@@ -1548,10 +1548,13 @@ function matchIngredient(ingredient, inventory) {
     return hay && (hay === needleName || hay.includes(needleName) || needleName.includes(hay));
   });
 
-  if (needleProduct) {
+    if (needleProduct) {
     const productMatches = (list) => list.filter((item) => {
       const hayProduct = (item.product || "").trim().toLowerCase();
-      return hayProduct && (hayProduct === needleProduct || hayProduct.includes(needleProduct) || needleProduct.includes(hayProduct));
+      // Kein konkretes Produkt im Vorrat hinterlegt -> zählt als passend,
+      // da es dann zu jeder verlangten Produktvariante passen kann.
+      if (!hayProduct) return true;
+      return hayProduct === needleProduct || hayProduct.includes(needleProduct) || needleProduct.includes(hayProduct);
     });
     // Alle passenden Vorratseinträge (nicht nur der erste) – werden beim
     // Verfügbarkeits-Check zusammengerechnet und beim Kochen nacheinander abgezogen.
