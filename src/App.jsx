@@ -1361,7 +1361,15 @@ function RecipeModal({ initial, defaultName, defaultDescription, defaultServings
   };
   const addIngredient = () => setIngredients((prev) => [...prev, { name: "", product: "", amount: "", unit: "Stück" }]);
   const removeIngredient = (idx) => setIngredients((prev) => prev.filter((_, i) => i !== idx));
-
+  const scaleIngredients = () => {
+    const factor = (Number(servings) || 1) / (Number(baseServings) || 1);
+    if (!isFinite(factor) || factor <= 0) return;
+    setIngredients((prev) => prev.map((ing, idx) => {
+      const baseAmount = Number(baseIngredients[idx]?.amount ?? ing.amount) || 0;
+      return { ...ing, amount: Math.round(baseAmount * factor * 100) / 100 };
+    }));
+  };
+  
   const handleSave = () => {
     if (!name.trim()) return;
     const cleanIngredients = ingredients
