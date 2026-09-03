@@ -2274,9 +2274,9 @@ function DashboardPage({ state, actions, openModal, setPage, navigate, currentUs
 
   return (
     <div>
-      <h1 className="nest-page-title">{greeting()}{settings.person1Name ? `, ${settings.person1Name}` : ""} 🌷</h1>
+           <h1 className="nest-page-title">{greeting()}{myName ? `, ${myName}` : ""} 🌷</h1>
       <p className="nest-page-sub">
-        {formatHuman(t)} · Heute {tasks.filter((tk) => !tk.completed && tk.date === t).length + expiringSoon.filter(i => urgencyOfExpiry(i.expiry) === "heute" || urgencyOfExpiry(i.expiry) === "abgelaufen").length} Dinge im Blick
+        {formatHuman(t)} · Heute {todayTasks.filter((tk) => tk.date === t).length + expiringSoon.filter(i => urgencyOfExpiry(i.expiry) === "heute" || urgencyOfExpiry(i.expiry) === "abgelaufen").length} Dinge im Blick
       </p>
 
       <div className="nest-section">
