@@ -14,7 +14,8 @@ export default async function handler(req, res) {
         "Referer": "https://www.google.com/",
       },
     });
-
+    console.log("Import-Status:", response.status, response.statusText, "URL:", url);
+    
     if (!response.ok) {
       res.status(502).json({ error: `Seite hat mit Status ${response.status} geantwortet – vermutlich blockiert.` });
       return;
