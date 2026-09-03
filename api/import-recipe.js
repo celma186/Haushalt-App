@@ -99,14 +99,44 @@ const APPROX_QUANTITY_PREFIX = /^(etwas|einige|ein paar|nach belieben|nach gesch
 
 // Räumt einen einzelnen Zutatennamen auf: entfernt verrutschte Kommas
 // am Anfang sowie Mengen-Wörter wie "gestr." oder "etwas".
+// Wörter, die nur beschreiben, WIE die Menge gemeint ist (z.B. "1
+// gestrichener TL"), aber durch einen Chefkoch-Datenfehler fälschlich
+// vorne im Zutatennamen landen. Werden aus dem Namen entfernt und
+// stattdessen als Notiz in Klammern ans Ende gesetzt.
+const AMOUNT_QUALIFIER_WORDS = /\b(gestr\.?|gestrichen(?:er|e|en)?|gehäuft(?:er|e|en)?|glatt(?:er|e|en)?)\b/gi;
+
+// Wörter, die eine ungefähre Menge ausdrücken (z.B. "etwas Salz"), statt
+// einer echten Zahl. Werden ebenfalls als Notiz in Klammern angehängt.
+const APPROX_QUANTITY_PREFIX = /^(etwas|einige|ein paar|nach belieben|nach geschmack)\s+/i;
+
+// Räumt einen einzelnen Zutatennamen auf: entfernt verrutschte Kommas
+// am Anfang sowie Mengen-Wörter wie "gestr." oder "etwas" – hängt sie
+// aber als Notiz in Klammern ans Ende des Namens an, statt sie zu löschen.
 function cleanIngredientName(text) {
-  return text
-    .replace(/^,\s*/, "")
-    .replace(AMOUNT_QUALIFIER_WORDS, "")
-    .replace(APPROX_QUANTITY_PREFIX, "")
+  const notes = [];
+
+  let cleaned = text.replace(/^,\s*/, "");
+
+  cleaned = cleaned.replace(AMOUNT_QUALIFIER_WORDS, (match) => {
+    notes.push(match.trim());
+    return "";
+  });
+
+  cleaned = cleaned.replace(APPROX_QUANTITY_PREFIX, (match, word) => {
+    notes.push(word.trim());
+    return "";
+  });
+
+  cleaned = cleaned
     .replace(/\s+/g, " ")
     .replace(/^,\s*/, "")
     .trim();
+
+  if (notes.length > 0) {
+    cleaned = `${cleaned} (${notes.join(", ")})`;
+  }
+
+  return cleaned;
 }
 
 function cleanupIngredientList(rawList) {
