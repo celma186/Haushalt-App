@@ -2155,19 +2155,22 @@ function previewLine(labels, limit = 3) {
   return labels.length > limit ? `${shown} …` : shown;
 }
 
-function DashboardPage({ state, actions, openModal, setPage, navigate }) {
+function DashboardPage({ state, actions, openModal, setPage, navigate, currentUser }) {
   const { settings, tasks, shopping, inventory, recipes, mealPlan } = state;
   const t = todayStr();
+  const myName = currentUser === "person1" ? settings.person1Name : settings.person2Name;
 
+  // Nur meine eigenen Aufgaben + gemeinsame - nicht die des Partners.
   const todayTasks = useMemo(() => {
     return tasks
       .filter((task) => !task.completed && task.date <= t)
+      .filter((task) => task.assignee === currentUser || task.assignee === "gemeinsam")
       .sort((a, b) => {
         const pr = { high: 0, medium: 1, low: 2 };
         if (a.date !== b.date) return a.date < b.date ? -1 : 1;
         return pr[a.priority] - pr[b.priority];
       });
-  }, [tasks, t]);
+  }, [tasks, t, currentUser]);
 
   const upcoming = useMemo(() => {
     const days = [0, 1, 2, 3].map((n) => addDays(t, n));
